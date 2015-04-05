@@ -290,7 +290,6 @@ class RightPanel(wx.Panel):
 	    cardInfoDlg.ShowModal()
 	    cardInfoDlg.Destroy()
 
-
 def main():
 	app = wx.App()
 	PyMemo(None, -1, 'PyMemo', (1000, 620))
