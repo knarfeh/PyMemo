@@ -6,6 +6,12 @@ import sys
 import wx.lib.dialogs
 
 class PyMemo(wx.Frame):
+    '''
+    PyMemo类：构建整个软件的框架
+    包括窗口，菜单栏，工具栏，分隔窗
+
+    PyMemo.py和Dialog.py一起构成软件的视图层
+    '''
     def __init__(self, parent, id, title, size):
         wx.Frame.__init__(self, parent, id, title=title, size=size)
         self.icon = wx.Icon('images/32/PyMemo_logo_white.png', wx.BITMAP_TYPE_PNG)
@@ -196,24 +202,30 @@ class PyMemo(wx.Frame):
 
 # Left Section
 class LeftPanel(wx.Panel):
-    def __init__(self, parent, id):
-        libraryDic = {'0':['词频分级词汇一','100/0/100', ''],
-                  '1':['词频分级词汇二','0/0/17'],
-                  '2':['词频分级词汇三','100/0/100'],
-                  '3':['词频分级词汇四','74/0/100'],
-                  '4':['CET-4高频词汇','0/0/100']}
-        wx.Panel.__init__(self, parent, id, style=wx.BORDER_NONE)
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        for i in range(len(libraryDic)):
-            vbox.Add(wx.Button(self, -1, label=libraryDic[str(i)][0]+"    "+libraryDic[str(i)][1], size=(-1, 40)),
-                     0,
-                     wx.EXPAND|wx.ALL,
-                     border=10)
-        self.SetSizer(vbox)
-        self.Show(True)
+	'''
+	生成窗口左侧分隔窗的词库列表
+	'''
+	def __init__(self, parent, id):
+		libraryDic = {'0':['词频分级词汇一','100/0/100', ''],
+			'1':['词频分级词汇二','0/0/17'],
+			'2':['词频分级词汇三','100/0/100'],
+			'3':['词频分级词汇四','74/0/100'],
+			'4':['CET-4高频词汇','0/0/100']}
+		wx.Panel.__init__(self, parent, id, style=wx.BORDER_NONE)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		for i in range(len(libraryDic)):
+			vbox.Add(wx.Button(self, -1, label=libraryDic[str(i)][0]+"    "+libraryDic[str(i)][1], size=(-1, 40)),
+			 0,
+			 wx.EXPAND|wx.ALL,
+			 border=10)
+		self.SetSizer(vbox)
+		self.Show(True)
 
 # Middle Section
 class MiddlePanel(wx.Panel):
+	'''
+	生成窗口中间的ListCtrl
+	'''
 	def __init__(self, parent, id):
 		wx.Panel.__init__(self, parent, id, style=wx.BORDER_NONE)
 		Lib_Items=['请选择筛选条件', '当前词库所有的', '正在学习的', '已到期的', '已记住的', '今天已学习的', '始终记不住的', '今天添加的']
@@ -279,6 +291,12 @@ class MiddlePanel(wx.Panel):
 
 # Right Section
 class RightPanel(wx.Panel):
+	'''
+	生成窗口右侧的单词卡片编辑窗口
+
+	此分隔窗是否保留目前还不确定，但是我希望删除
+	因为我感觉这对词库中单词卡片的操作会有些困扰
+	'''
 	def __init__(self, parent, id):
 		wx.Panel.__init__(self, parent, id, style=wx.BORDER_NONE)
 		vbox = wx.BoxSizer(wx.VERTICAL)
