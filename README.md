@@ -11,7 +11,7 @@
 
 GUI：wxpython2.7.9
 
-IDE：pyCharm
+IDE：PyCharm
 
 ----
 
