@@ -1,6 +1,6 @@
 # -*- coding: gbk -*-
 import wx
-import Fun
+import FrameFun
 
 class AboutDialog(wx.AboutDialogInfo):
     def __init__(self):
