@@ -193,8 +193,6 @@ class PyMemo(wx.Frame):
         startMemoDlg.ShowModal()
         startMemoDlg.Destroy()
 
-
-
 # Left Section
 class LeftPanel(wx.Panel):
     def __init__(self, parent, id):
@@ -291,3 +289,12 @@ class RightPanel(wx.Panel):
 	    cardInfoDlg = Dialog.CardInfoDialog()
 	    cardInfoDlg.ShowModal()
 	    cardInfoDlg.Destroy()
+
+
+def main():
+	app = wx.App()
+	PyMemo(None, -1, 'PyMemo', (1000, 620))
+	app.MainLoop()
+
+if __name__ == '__main__':
+	main()
