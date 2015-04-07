@@ -23,7 +23,7 @@ class AboutDialog(wx.AboutDialogInfo):
 
 class SettingDialog(wx.Dialog):
     def __init__(self):
-        wx.Dialog.__init__(self, None, -1, '单词卡片详细信息',size=(200, 400),
+        wx.Dialog.__init__(self, None, -1, '词库设置',size=(200, 400),
                            style=wx.CAPTION
                                  |wx.SYSTEM_MENU
                                  |wx.CLOSE_BOX)
@@ -42,16 +42,16 @@ class SettingDialog(wx.Dialog):
         showLeftCard = wx.CheckBox(panel1,
                             label='在复习的时候显示剩余卡片数',
                             style=wx.CHK_3STATE)
-        showTime = wx.CheckBox(panel1,
-                            label='在复习的时候显示时间',
-                            style=wx.CHK_3STATE)
+        # showTime = wx.CheckBox(panel1,
+        #                     label='在复习的时候显示时间',
+        #                     style=wx.CHK_3STATE)
         showNextTime.SetValue(True)
         showLeftCard.SetValue(True)
-        showTime.SetValue(True)
+        # showTime.SetValue(True)
 
         sbs1.Add(showNextTime, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
         sbs1.Add(showLeftCard, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
-        sbs1.Add(showTime, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
+        # sbs1.Add(showTime, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
 
         panel1.SetSizer(sbs1)
 

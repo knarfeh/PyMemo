@@ -16,11 +16,11 @@ class Library():
 	easyInterval ‘简单’反馈的间隔天数
 	maxInterval 最大时间间隔（天）
 	maxAnswerTime 最长回答秒数
-	IsShowAnswerTime 时候显示计时器(True/False)
+	isShowAnswerTime 时候显示计时器(True/False)
 	'''
-	def __init__(self, libId, name, libDesc, createTime,
-	             maxReviewsPerDay=50, newCardsPerDay=50, easyInterval=3,
-	             maxInterval = 3650, maxAnswerTime = 30, IsShowAnswerTime = True):
+	def __init__(self, libId, name, createTime,
+	             libDesc=" ", maxReviewsPerDay=50, newCardsPerDay=50, easyInterval=3,
+	             maxInterval = 3650, maxAnswerTime = 30, isShowAnswerTime = True):
 		self.libId = libId
 		self.name = name
 		self.libDesc = libDesc
@@ -30,7 +30,7 @@ class Library():
 		self.easyInterval = easyInterval
 		self.maxInterval = maxInterval
 		self.maxAnswerTime = maxAnswerTime
-		self.IsShowAnswerTime = IsShowAnswerTime
+		self.isShowAnswerTime = isShowAnswerTime
 
 	def getLibId(self):
 		return  self.libId
