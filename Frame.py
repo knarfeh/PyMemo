@@ -390,14 +390,14 @@ class RightPanel(wx.Panel):
 		self.Show(True)
 
 	def createOperationCol(self, parent):
-	    gridSizer = wx.GridSizer(rows=3, cols=3, hgap=5, vgap=5)
-	    cancelBW = wx.Button(parent, -1, label="取消修改")
-	    submitBW = wx.Button(parent, -1, label="确认修改")
-	    gridSizer.Add(cancelBW, 0, 0)
-	    gridSizer.Add(submitBW, 0, wx.LEFT, 10)
-	    parent.SetSizer(gridSizer)
-	    self.Centre()
-	    self.Show(True)
+		gridSizer = wx.GridSizer(rows=3, cols=3, hgap=5, vgap=5)
+		cancelBW = wx.Button(parent, -1, label="取消修改")
+		submitBW = wx.Button(parent, -1, label="确认修改")
+		gridSizer.Add(cancelBW, 0, 0)
+		gridSizer.Add(submitBW, 0, wx.LEFT, 10)
+		parent.SetSizer(gridSizer)
+		self.Centre()
+		self.Show(True)
 
 def main():
 	app = wx.App()
