@@ -9,6 +9,11 @@
 
 ----
 
+<<<<<<< HEAD
+=======
+Python: 2.7.9
+
+>>>>>>> test/master
 GUI：wxpython2.7.9
 
 IDE：PyCharm
@@ -21,4 +26,6 @@ IDE：PyCharm
 
 ----
 
-Emial：iliuyang@foxmail.com
+Email：iliuyang@foxmail.com
+
+

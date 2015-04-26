@@ -1,526 +1,687 @@
 # -*- coding: gbk -*-
+import time
 import wx
-import FrameFun
+import DBFun
+# import FrameFun
+
 
 class AboutDialog(wx.AboutDialogInfo):
     def __init__(self):
+        wx.AboutDialogInfo.__init__(self)
         description = "PyMemo是一个基于重复学习原理的记忆软件，简单易用，免费并开源。\n" \
-	                  "PyMeomo以AGPL3协议发布。\n\n" \
-	                  "这是我的一项毕业设计，课题为：基于Python的单词记忆软件开发\n" \
-	                  "GUI库：wxpython 2.7.9\n\n" \
-	                  "开发工具：pyCharm Community Edition 4.0.4\n" \
-	                  "这些图标是来自于不同的来源\n其中大部分来自：http://findicons.com/\n\n" \
-	                  "特别感谢：张治国老师的指导\n\n" \
-	                  "向所有提出过建议，报告Bug的人们致谢！\n\n" \
-	                  "联系：iliuyang@foxmail.com"
-        info = wx.AboutDialogInfo()
-        info.SetIcon(wx.Icon('images/64/PyMemo_logo_white.png', wx.BITMAP_TYPE_PNG))
-        info.SetName("PyMemo")
-        info.SetVersion('1.0')
-        info.SetDescription(description)
-        info.SetCopyright('(c)2015 刘洋')
-        wx.AboutBox(info)
+            "PyMeomo以AGPL3协议发布。\n\n" \
+            "这是我的一项毕业设计，课题为：基于Python的单词记忆软件开发\n" \
+            "GUI库：wxpython 2.7.9\n\n" \
+            "开发工具：pyCharm Community Edition 4.0.4\n" \
+            "这些图标是来自于不同的来源\n其中大部分来自：http://findicons.com/\n\n" \
+            "特别感谢：张治国老师的指导\n\n" \
+            "向所有提出过建议，报告Bug的人们致谢！\n\n" \
+            "联系：iliuyang@foxmail.com"
+        self.SetIcon(wx.Icon('images/64/PyMemo_logo_white.png', wx.BITMAP_TYPE_PNG))
+        self.SetName("PyMemo")
+        self.SetVersion('1.0')
+        self.SetDescription(description)
+        self.SetCopyright('(c)2015 刘洋')
+        wx.AboutBox(self)
+
 
 class SettingDialog(wx.Dialog):
-    def __init__(self):
-        wx.Dialog.__init__(self, None, -1, '词库设置',size=(200, 400),
-                           style=wx.CAPTION
-                                 |wx.SYSTEM_MENU
-                                 |wx.CLOSE_BOX)
-        vbox =wx.BoxSizer(wx.VERTICAL)
+    def __init__(self, LIBRARIES, flag):
+        wx.Dialog.__init__(self, None, -1, '词库设置', size=(200, 400),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
+        # global lib_index
+        lib_items = ['请选择词库']
+        for index, element in enumerate(LIBRARIES):
+            lib_items.append(LIBRARIES[element].decode('utf-8'))
 
-        gridSizer = wx.GridSizer(2, 2, 5, 5)
+        v_box = wx.BoxSizer(wx.VERTICAL)
+        panel_combo = wx.Panel(self, -1)
+        h_box_combo = wx.BoxSizer(wx.HORIZONTAL)
+        lib_text = wx.StaticText(panel_combo, -1, "你想让这些设置应用在哪个词库上？")
 
+        lib_combo_box = wx.ComboBox(panel_combo, choices=lib_items, style=wx.CB_READONLY)
+        if flag == -1:
+            lib_combo_box.SetSelection(0)
+        else:
+            lib_index = lib_items.index(LIBRARIES[flag].decode('utf-8'))
+            lib_combo_box.SetSelection(lib_index)
+
+        h_box_combo.Add(lib_text, 0, wx.TOP | wx.RIGHT, 10)
+        h_box_combo.Add(lib_combo_box, 0, wx.TOP | wx.LEFT, 5)
+        panel_combo.SetSizer(h_box_combo)
+
+        v_box.Add(panel_combo, 0, wx.TOP | wx.LEFT | wx.RIGHT, 10)
+
+        line_1 = wx.StaticLine(self, -1, size=(-1, -1), style=wx.LI_HORIZONTAL)
+        v_box.Add(line_1, 0, wx.EXPAND | wx.ALL, 10)
+
+        grid_sizer = wx.GridSizer(2, 2, 5, 5)
         # (0, 0)
-        panel1 = wx.Panel(self)
-        CardSetting = wx.StaticBox(panel1, -1, label='卡片')
-        sbs1 = wx.StaticBoxSizer(CardSetting, orient=wx.VERTICAL)
+        panel_left_top = wx.Panel(self)
+        preview_setting = wx.StaticBox(panel_left_top, -1, label='学习卡片界面')
+        sbs1 = wx.StaticBoxSizer(preview_setting, orient=wx.VERTICAL)
 
-        showNextTime = wx.CheckBox(panel1,
+        show_interval = wx.CheckBox(panel_left_top,
                             label='在回答按钮上显示下一次复习时间',
                             style=wx.CHK_3STATE)
-        showLeftCard = wx.CheckBox(panel1,
+        show_rest = wx.CheckBox(panel_left_top,
                             label='在复习的时候显示剩余卡片数',
                             style=wx.CHK_3STATE)
-        # showTime = wx.CheckBox(panel1,
-        #                     label='在复习的时候显示时间',
-        #                     style=wx.CHK_3STATE)
-        showNextTime.SetValue(True)
-        showLeftCard.SetValue(True)
-        # showTime.SetValue(True)
+        show_duration = wx.CheckBox(panel_left_top,
+                            label='在复习的时候显示所用时间',
+                            style=wx.CHK_3STATE)
+        show_interval.SetValue(True)
+        show_rest.SetValue(True)
+        show_duration.SetValue(True)
 
-        sbs1.Add(showNextTime, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
-        sbs1.Add(showLeftCard, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
-        # sbs1.Add(showTime, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
+        sbs1.Add(show_interval, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, border=10)
+        sbs1.Add(show_rest, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, border=10)
+        sbs1.Add(show_duration, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, border=10)
 
-        panel1.SetSizer(sbs1)
+        panel_left_top.SetSizer(sbs1)
 
-        gridSizer.Add(panel1, 3, wx.EXPAND|wx.ALL, border=10)
+        grid_sizer.Add(panel_left_top, 3, wx.EXPAND | wx.ALL, border=10)
 
         # (0, 1)
-        panel2 = wx.Panel(self)
-        StudySetting = wx.StaticBox(panel2, -1, label='学习卡片设置')
-        sbs2 = wx.StaticBoxSizer(StudySetting, orient=wx.VERTICAL)
+        panel_right_top = wx.Panel(self)
+        study_setting = wx.StaticBox(panel_right_top, -1, label='自定义学习卡片')
+        sbs2 = wx.StaticBoxSizer(study_setting, orient=wx.VERTICAL)
         grid1 = wx.FlexGridSizer(0, 2, 0, 0)
 
         # group of controls:
-        self.group_ctrls = []
-        text1 = wx.StaticText(panel2, label="每日学习卡片上限（张）")
-        text2 = wx.StaticText(panel2, label="每日复习卡片上限（张）")
-        text3 = wx.StaticText(panel2, label="超时显示卡片反面（秒）")
+        self.group_ctrl = []
+        text1 = wx.StaticText(panel_right_top, label="每日学习卡片上限（张）")
+        text2 = wx.StaticText(panel_right_top, label="每日复习卡片上限（张）")
+        text3 = wx.StaticText(panel_right_top, label="超时显示卡片反面（秒）")
 
-        studyLimit = wx.SpinCtrl(panel2, -1)
-        studyLimit.SetRange(1, 200)
-        studyLimit.SetValue(80)
+        study_limit = wx.SpinCtrl(panel_right_top, -1)
+        study_limit.SetRange(1, 200)
+        study_limit.SetValue(80)
 
-        reviewLimit = wx.SpinCtrl(panel2, -1)
-        reviewLimit.SetRange(1, 200)
-        reviewLimit.SetValue(80)
+        review_limit = wx.SpinCtrl(panel_right_top, -1)
+        review_limit.SetRange(1, 200)
+        review_limit.SetValue(80)
 
-        showTimeLimit = wx.SpinCtrl(panel2, -1)
-        showTimeLimit.SetRange(1, 60)
-        showTimeLimit.SetValue(10)
+        deadline_limit = wx.SpinCtrl(panel_right_top, -1)
+        deadline_limit.SetRange(1, 60)
+        deadline_limit.SetValue(10)
 
-        self.group_ctrls.append((text1, studyLimit))
-        self.group_ctrls.append((text2, reviewLimit))
-        self.group_ctrls.append((text3, showTimeLimit))
+        self.group_ctrl.append((text1, study_limit))
+        self.group_ctrl.append((text2, review_limit))
+        self.group_ctrl.append((text3, deadline_limit))
 
-        for text, spinctrl in self.group_ctrls:
-            grid1.Add( text, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
-            grid1.Add( spinctrl, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+        for text, spin_ctrl in self.group_ctrl:
+            grid1.Add(text, 0, wx.ALIGN_CENTRE | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+            grid1.Add(spin_ctrl, 0, wx.ALIGN_CENTRE | wx.LEFT | wx.RIGHT | wx.TOP, 5)
 
-        sbs2.Add(grid1, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-        panel2.SetSizer(sbs2)
-        gridSizer.Add(panel2, 1, wx.EXPAND|wx.ALL, border=10)
+        sbs2.Add(grid1, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        panel_right_top.SetSizer(sbs2)
+        grid_sizer.Add(panel_right_top, 1, wx.EXPAND | wx.ALL, border=10)
 
         # (1, 0)
-        panel3 = wx.Panel(self)
-        fontSetting = wx.StaticBox(panel3, -1, label='卡片顺序')
-        sbs3 = wx.StaticBoxSizer(fontSetting, orient=wx.VERTICAL)
+        panel_left_bottom = wx.Panel(self)
+        order_setting = wx.StaticBox(panel_left_bottom, -1, label='学习卡片的顺序')
+        sbs3 = wx.StaticBoxSizer(order_setting, orient=wx.VERTICAL)
 
-        oldAfterNew = wx.RadioButton(panel3, -1, "新卡片学习完之后再复习旧卡片")
-        newAfterOld = wx.RadioButton(panel3, -1, "旧卡片复习完之后再学习新卡片")
-        newOrOld = wx.RadioButton(panel3, -1, "新旧卡片交替出现")
+        old_after_new = wx.RadioButton(panel_left_bottom, -1, "新卡片学习完之后再复习旧卡片")
+        new_after_old = wx.RadioButton(panel_left_bottom, -1, "旧卡片复习完之后再学习新卡片")
+        new_or_old = wx.RadioButton(panel_left_bottom, -1, "新旧卡片交替出现")
 
-        sbs3.Add(oldAfterNew, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
-        sbs3.Add(newAfterOld, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
-        sbs3.Add(newOrOld, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM, border=10)
+        new_or_old.SetValue(True)
 
-        panel3.SetSizer(sbs3)
+        sbs3.Add(old_after_new, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, border=10)
+        sbs3.Add(new_after_old, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, border=10)
+        sbs3.Add(new_or_old, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, border=10)
 
-        gridSizer.Add(panel3, 1, wx.EXPAND|wx.ALL, border=10)
+        panel_left_bottom.SetSizer(sbs3)
+
+        grid_sizer.Add(panel_left_bottom, 1, wx.EXPAND | wx.ALL, border=10)
 
         # (1, 1)
-        panel4 = wx.Panel(self)
-        fontSetting = wx.StaticBox(panel4, -1, label='字体设置')
-        sbs4 = wx.StaticBoxSizer(fontSetting, orient=wx.VERTICAL)
-        panel41 = wx.Panel(self)
-        panel42 = wx.Panel(self)
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        panel_right_bottom = wx.Panel(self)
+        font_setting = wx.StaticBox(panel_right_bottom, -1, label='字体设置')
+        sbs4 = wx.StaticBoxSizer(font_setting, orient=wx.VERTICAL)
+        h_box_1 = wx.BoxSizer(wx.HORIZONTAL)
+        h_box_2 = wx.BoxSizer(wx.HORIZONTAL)
 
-        fontFamilyList = ['font-family-one',
+        font_family_list = ['font-family-one',
                            'font-family-two',
                            'font-family-three',
                            'font-family-flour']
-        fontFamilyText = wx.StaticText(panel4, -1, "字体：",)
-        fontFamily = wx.Choice(panel4, -1, choices=fontFamilyList)
+        font_family_text = wx.StaticText(panel_right_bottom, -1, "字体：",)
+        font_family = wx.Choice(panel_right_bottom, -1, choices=font_family_list)
 
-        hbox1.Add(fontFamilyText, 1, wx.LEFT|wx.TOP, border=10)
-        hbox1.Add(fontFamily, 3, wx.TOP, border=10)
+        h_box_1.Add(font_family_text, 1, wx.LEFT | wx.TOP, border=10)
+        h_box_1.Add(font_family, 3, wx.TOP, border=10)
 
-        fontSizeText = wx.StaticText(panel4, -1, "字号：")
-        fontSize = wx.SpinCtrl(panel4, -1)
-        fontSize.SetRange(1, 30)
-        fontSize.SetValue(12)
+        font_size_text = wx.StaticText(panel_right_bottom, -1, "字号：")
+        font_size = wx.SpinCtrl(panel_right_bottom, -1)
+        font_size.SetRange(1, 30)
+        font_size.SetValue(12)
 
-        hbox2.Add(fontSizeText, 1, wx.LEFT|wx.TOP, border=10)
-        hbox2.Add(fontSize, 3, wx.TOP, border=10)
+        h_box_2.Add(font_size_text, 1, wx.LEFT | wx.TOP, border=10)
+        h_box_2.Add(font_size, 3, wx.TOP, border=10)
 
-        sbs4.Add(hbox1, wx.LEFT, border=5)
-        sbs4.Add(hbox2, wx.LEFT, border=5)
+        sbs4.Add(h_box_1, wx.LEFT, border=5)
+        sbs4.Add(h_box_2, wx.LEFT, border=5)
 
-        panel4.SetSizer(sbs4)
-        gridSizer.Add(panel4, 1, wx.EXPAND|wx.ALL, border=10)
-
+        panel_right_bottom.SetSizer(sbs4)
+        grid_sizer.Add(panel_right_bottom, 1, wx.EXPAND | wx.ALL, border=10)
+        v_box.Add(grid_sizer, 1)
 
         # (2, 1)
-        vbox.Add(gridSizer, 10)
+        h_box = wx.BoxSizer(wx.HORIZONTAL)
+        ok_button = wx.Button(self, -1, label='确定')
+        apply_button = wx.Button(self, -1, label="应用")
+        close_button = wx.Button(self, -1, label='关闭')
+        h_box.Add(ok_button, 1, wx.RIGHT, border=5)
+        h_box.Add(apply_button, 1, wx.RIGHT, border=5)
+        h_box.Add(close_button, 1, wx.RIGHT, border=10)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        okButton = wx.Button(self, -1, label='确定')
-        applyButton = wx.Button(self, -1, label="应用")
-        closeButton = wx.Button(self, -1, label='关闭')
-        hbox.Add(okButton, 1, wx.RIGHT, border=5)
-        hbox.Add(applyButton, 1, wx.RIGHT, border=5)
-        hbox.Add(closeButton, 1, wx.RIGHT, border=5)
+        v_box.Add(h_box, 0, wx.ALIGN_RIGHT | wx.BOTTOM, border=10)
 
-        vbox.Add(hbox, 1, wx.ALIGN_RIGHT)
+        self.Bind(wx.EVT_BUTTON, self.on_close, close_button)
 
-        self.Bind(wx.EVT_BUTTON, self.OnClose, closeButton)
-
-        self.SetSizer(vbox)
+        self.SetSizer(v_box)
         self.Fit()
         self.Centre()
         self.Show(True)
 
-    def OnClose(self, e):
+    def on_close(self, e):
         self.Destroy()
+        e.Skip()
+
 
 class CardInfoDialog(wx.Dialog):
     def __init__(self):
-        wx.Dialog.__init__(self, None, -1, '单词卡片详细信息',size=(300, 400),
-                           style=wx.CAPTION
-                                 |wx.SYSTEM_MENU
-                                 |wx.CLOSE_BOX)
+        wx.Dialog.__init__(self, None, -1, '单词卡片详细信息', size=(300, 400),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
         panel = wx.Panel(self, -1)
-        infoDir = {1:['添加时间','2015-3-24'],
-                   2:['首次学习','2015-3-24'],
-                   3:['最近复习','2015-3-24'],
-                   4:['到期时间','2015-3-24'],
-                   5:['间隔','9天'],
-                   6:['复习次数','2'],
-                   7:['错误次数','2'],
-                   8:['所属词库','CET-4高频词汇'],
-                   9:['卡片ID','15456468465'],
-                   10:['词库ID','564645635218'],}
+        info_dir = {1: ['添加时间', '2015-3-24'],
+                   2: ['首次学习', '2015-3-24'],
+                   3: ['最近复习', '2015-3-24'],
+                   4: ['到期时间', '2015-3-24'],
+                   5: ['间隔', '9天'],
+                   6: ['复习次数', '2'],
+                   7: ['错误次数', '2'],
+                   8: ['所属词库', 'CET-4高频词汇'],
+                   9: ['卡片ID', '15456468465'],
+                   10: ['词库ID', '564645635218']}
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        headTitle = wx.StaticText(panel, label="单词卡片的详细信息")
-        addTime = wx.StaticText(panel, label=infoDir[1][0]+"      "+infoDir[1][1])
-        firstStudyTime = wx.StaticText(panel, label=infoDir[2][0]+"      "+infoDir[2][1])
-        reviewTime = wx.StaticText(panel, label=infoDir[3][0]+"      "+infoDir[3][1])
-        deadLine = wx.StaticText(panel, label=infoDir[4][0]+"      "+infoDir[4][1])
-        delayDay = wx.StaticText(panel, label=infoDir[5][0]+"      "+infoDir[5][1])
-        reviewNum = wx.StaticText(panel, label=infoDir[6][0]+"      "+infoDir[6][1])
-        errorNum = wx.StaticText(panel, label=infoDir[7][0]+"      "+infoDir[7][1])
-        belongLib = wx.StaticText(panel, label=infoDir[8][0]+"      "+infoDir[8][1])
-        cardId = wx.StaticText(panel, label=infoDir[9][0]+"      "+infoDir[9][1])
-        libId = wx.StaticText(panel, label=infoDir[10][0]+"      "+infoDir[10][1])
+        v_box = wx.BoxSizer(wx.VERTICAL)
+        head_title = wx.StaticText(panel, label="单词卡片的详细信息")
+        add_time = wx.StaticText(panel, label=info_dir[1][0] + " " * 6 + info_dir[1][1])
+        first_study_time = wx.StaticText(panel, label=info_dir[2][0] + " " * 6 + info_dir[2][1])
+        review_time = wx.StaticText(panel, label=info_dir[3][0] + " " * 6 + info_dir[3][1])
+        dead_line = wx.StaticText(panel, label=info_dir[4][0] + " " * 6 + info_dir[4][1])
+        interval_day = wx.StaticText(panel, label=info_dir[5][0] + " " * 6 + info_dir[5][1])
+        review_num = wx.StaticText(panel, label=info_dir[6][0] + " " * 6 + info_dir[6][1])
+        error_num = wx.StaticText(panel, label=info_dir[7][0] + " " * 6 + info_dir[7][1])
+        belong_lib = wx.StaticText(panel, label=info_dir[8][0] + " " * 6 + info_dir[8][1])
+        record_id = wx.StaticText(panel, label=info_dir[9][0] + " " * 6 + info_dir[9][1])
+        lib_id = wx.StaticText(panel, label=info_dir[10][0] + " " * 6 + info_dir[10][1])
 
+        v_box.Add(head_title, 1, wx.CENTER | wx.TOP, border=10)
+        v_box.Add(add_time, 1, wx.ALL, border=10)
+        v_box.Add(first_study_time, 1, wx.ALL, border=10)
+        v_box.Add(review_time, 1, wx.ALL, border=10)
+        v_box.Add(dead_line, 1, wx.ALL, border=10)
+        v_box.Add(interval_day, 1, wx.ALL, border=10)
+        v_box.Add(review_num, 1, wx.ALL, border=10)
+        v_box.Add(error_num, 1, wx.ALL, border=10)
+        v_box.Add(belong_lib, 1, wx.ALL, border=10)
+        v_box.Add(record_id, 1, wx.ALL, border=10)
+        v_box.Add(lib_id, 1, wx.ALL, border=10)
 
-        vbox.Add(headTitle, 1, wx.CENTER|wx.TOP, border=10)
-        vbox.Add(addTime, 1, wx.ALL, border=10)
-        vbox.Add(firstStudyTime, 1, wx.ALL, border=10)
-        vbox.Add(reviewTime, 1, wx.ALL, border=10)
-        vbox.Add(deadLine, 1, wx.ALL, border=10)
-        vbox.Add(delayDay, 1, wx.ALL, border=10)
-        vbox.Add(reviewNum, 1, wx.ALL, border=10)
-        vbox.Add(errorNum, 1, wx.ALL, border=10)
-        vbox.Add(belongLib, 1, wx.ALL, border=10)
-        vbox.Add(cardId, 1, wx.ALL, border=10)
-        vbox.Add(libId, 1, wx.ALL, border=10)
-
-        panel.SetSizer(vbox)
+        panel.SetSizer(v_box)
         self.Centre()
         self.Show(True)
+
 
 class AddNewLib(wx.Dialog):
-    def __init__(self, parent, id, title, size, pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
-        pre = wx.PreDialog()
-        pre.SetExtraStyle(wx.DIALOG_EX_CONTEXTHELP)
-        pre.Create(parent, id, title, pos, size, style)
+    def __init__(self):
+        wx.Dialog.__init__(self, None, -1, '新建词库', size=(-1, 270),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
+        panel = wx.Panel(self, -1)
+        v_box = wx.BoxSizer(wx.VERTICAL)
+        name_text = wx.StaticText(panel, -1, "词库名称：")
+        lib_name = wx.TextCtrl(panel, -1, "", style=wx.TE_CAPITALIZE)
 
-        self.PostCreate(pre)
+        desc_text = wx.StaticText(panel, -1, "词库描述：")
+        lib_desc = wx.TextCtrl(panel, -1, "", size=(-1, 80), style=wx.TE_MULTILINE | wx.TE_NO_VSCROLL)
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
+        h_box = wx.BoxSizer(wx.HORIZONTAL)
+        ok_button = wx.Button(panel, -1, label='确定')
+        cancel_button = wx.Button(panel, wx.ID_CANCEL, label='取消')
+        self.Bind(wx.EVT_BUTTON, lambda evt, name=lib_name, desc=lib_desc: self.on_submit(evt, name, desc), ok_button)
+        h_box.Add(ok_button, 1, wx.RIGHT, border=5)
+        h_box.Add(cancel_button, 1)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        v_box.Add(name_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        v_box.Add(lib_name, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(desc_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(lib_desc, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(h_box, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
-        label = wx.StaticText(self, -1, "新建词库的名称：")
-        hbox.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-
-        text = wx.TextCtrl(self, -1, "", size=(80,-1))
-        hbox.Add(text, 1, wx.ALIGN_CENTER|wx.ALL, 5)
-
-        vbox.Add(hbox, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-
-        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-
-        vbox.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
-
-        btnsizer = wx.StdDialogButtonSizer()
-
-        if wx.Platform != "__WXMSW__":
-            btn = wx.ContextHelpButton(self)
-            btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_OK, "确定")
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_CANCEL, "取消")
-        btnsizer.AddButton(btn)
-        btnsizer.Realize()
-
-        vbox.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-
-        self.SetSizer(vbox)
-        vbox.Fit(self)
+        panel.SetSizer(v_box)
         self.Centre()
         self.Show(True)
+
+    def on_submit(self, evt, name, desc):
+        lib_name = name.GetValue().encode('utf-8')
+        lib_desc = desc.GetValue().encode('utf-8')
+
+        next_lib_id = int(DBFun.max_lib('libId')) + 1
+        lib_id = str(next_lib_id).zfill(3)
+        create_time = time.strftime('%Y/%m/%d %H:%I:%M:%S', time.localtime(time.time()))
+
+        insert_lib_sql = "INSERT INTO library(libId, name, libDesc, createTime) VALUES ('" + lib_id + "', '" + lib_name + "', '" +\
+                         lib_desc + "', '" + create_time + "')"
+        conn = DBFun.connect_db('db_pymemo.db')
+        if DBFun.update(conn, insert_lib_sql):
+            conn.commit()
+        conn.close()
+        self.Close()
+
+
+class RenameLib(wx.Dialog):
+    def __init__(self, old_name, old_desc, lib_id):
+        wx.Dialog.__init__(self, None, -1, '修改' + old_name + '名称和描述', size=(-1, 270),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
+        panel = wx.Panel(self, -1)
+        v_box = wx.BoxSizer(wx.VERTICAL)
+
+        name_text = wx.StaticText(panel, -1, "词库名称：")
+        lib_name = wx.TextCtrl(panel, -1, old_name, style=wx.TE_CAPITALIZE)
+
+        desc_text = wx.StaticText(panel, -1, "词库描述：")
+        lib_desc = wx.TextCtrl(panel, -1, old_desc, size=(-1, 80), style=wx.TE_MULTILINE | wx.TE_NO_VSCROLL)
+
+        h_box = wx.BoxSizer(wx.HORIZONTAL)
+        ok_button = wx.Button(panel, -1, label='确定')
+        cancel_button = wx.Button(panel, wx.ID_CANCEL, label='取消')
+        self.Bind(wx.EVT_BUTTON, lambda evt, name=lib_name, desc=lib_desc, i=lib_id: self.on_submit(evt, name, desc, i), ok_button)
+        h_box.Add(ok_button, 1, wx.RIGHT, border=5)
+        h_box.Add(cancel_button, 1)
+
+        v_box.Add(name_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        v_box.Add(lib_name, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(desc_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(lib_desc, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(h_box, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+
+        panel.SetSizer(v_box)
+        self.Centre()
+        self.Show(True)
+
+    def on_submit(self, evt, name, desc, i):
+        lib_name = name.GetValue().encode('utf-8')
+        lib_desc = desc.GetValue().encode('utf-8')
+        update_lib_sql = "UPDATE library SET " \
+                         "name = '" + lib_name + "', libDesc = '" + lib_desc + "' WHERE libId = '" + i + "'"
+        conn = DBFun.connect_db('db_pymemo.db')
+        conn.text_factory = str
+        if DBFun.update(conn, update_lib_sql):
+            print 'update succeed !'
+            conn.commit()
+        else:
+            print 'update fault !'
+        conn.close()
+        self.Close()
+
+
+class LibInfo(wx.Dialog):
+    def __init__(self, lib_info):
+        wx.Dialog.__init__(self, None, -1, lib_info[1].decode('utf-8') + '词库的信息', size=(-1, 300),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
+
+        v_box = wx.BoxSizer(wx.VERTICAL)
+
+        panel = wx.Panel(self, -1, style=wx.BORDER)
+        panel.SetBackgroundColour('white')
+        v_box_panel = wx.BoxSizer(wx.VERTICAL)
+        lib_id = wx.StaticText(panel, -1, '词库ID：' + lib_info[0])
+        name_text = wx.StaticText(panel, -1, '词库名称：' + lib_info[1].decode('utf-8'))
+        desc_text = wx.StaticText(panel, -1, '词库描述：' + lib_info[2].decode('utf-8'))
+        create_time = wx.StaticText(panel, -1, '创建时间：' + str(lib_info[3]))
+        max_reviews = wx.StaticText(panel, -1, '每日复习：' + str(lib_info[4]))
+        max_new = wx.StaticText(panel, -1, '每日学习：' + str(lib_info[5]))
+        easy_interval = wx.StaticText(panel, -1, '简单间隔：' + str(lib_info[6]) + '（天）' )
+        max_interval = wx.StaticText(panel, -1, '最大间隔：' + str(lib_info[7]) + '（天）')
+        max_time = wx.StaticText(panel, -1, '最长回答：' + str(lib_info[8]) + '（秒）')
+        is_show_timer = wx.StaticText(panel, -1, '显示计时器：' + lib_info[9])
+
+
+        v_box_panel.Add(lib_id, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        v_box_panel.Add(name_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(desc_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(create_time, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(max_reviews, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(max_new, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(easy_interval, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(max_interval, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(max_time, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box_panel.Add(is_show_timer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        panel.SetSizer(v_box_panel)
+
+        h_box = wx.BoxSizer(wx.HORIZONTAL)
+        ok_button = wx.Button(self, -1, label='确定')
+        cancel_button = wx.Button(self, wx.ID_CANCEL, label='取消')
+        h_box.Add(ok_button, 1, wx.RIGHT, border=5)
+        h_box.Add(cancel_button, 1)
+
+        v_box.Add(panel, 1, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(h_box, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.SetSizer(v_box)
+        self.Centre()
+        self.Show(True)
+
+
+class DeleteLib(wx.Dialog):
+    def __init__(self, old_name, lib_id):
+        wx.Dialog.__init__(self, None, -1, '删除' + old_name + '词库', size=(-1, 180),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
+        panel = wx.Panel(self, -1)
+        panel.SetBackgroundColour('white')
+        v_box = wx.BoxSizer(wx.VERTICAL)
+        info_text = wx.StaticText(panel, -1, old_name + '词库将被删除，词库中的记录会被转移至孤儿院。\n你确定要这样做么？')
+
+        h_box = wx.BoxSizer(wx.HORIZONTAL)
+        ok_button = wx.Button(panel, -1, label='确定')
+        cancel_button = wx.Button(panel, wx.ID_CANCEL, label='取消')
+        h_box.Add(ok_button, 1, wx.RIGHT, border=5)
+        h_box.Add(cancel_button, 1)
+
+        v_box.Add(info_text, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP , 20)
+        v_box.Add(h_box, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 20)
+
+        panel.SetSizer(v_box)
+        self.Centre()
+        self.Show(True)
+
 
 class Export(wx.DirDialog):
     def __init__(self, parent):
         wx.DirDialog.__init__(self, parent, "请选择一个文件来保存导出的词库：",
-                          style=wx.DD_DEFAULT_STYLE
-                                |wx.DD_NEW_DIR_BUTTON)
-        self.Centre()
+                          style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+        self.CentreOnParent()
         self.Show(True)
+
 
 class Import(wx.FileDialog):
     def __init__(self, parent):
         wx.FileDialog.__init__(self, parent, "选择导入的词库文件",
                                wildcard="BMP and GIF files (*.bmp*.gif)|*.bmp*.gif|PNG files (*.png)|*.png",
-                               style=wx.FD_OPEN
-                                     |wx.FD_FILE_MUST_EXIST
-                                     |wx.FD_CHANGE_DIR
+                               style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR
                                )
         self.Centre()
         self.Show(True)
 
-class AddNewCard(wx.Dialog):
-    def __init__(self, parent, id, title, size, pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
-        pre = wx.PreDialog()
-        pre.SetExtraStyle(wx.DIALOG_EX_CONTEXTHELP)
-        pre.Create(parent, id, title, pos, size, style)
 
-        self.PostCreate(pre)
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
+class AddNewRecord(wx.Dialog):
+    def __init__(self):
+        wx.Dialog.__init__(self, None, -1, '增加一条记录', size=(-1, 350),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
+        panel = wx.Panel(self, -1)
+        v_box = wx.BoxSizer(wx.VERTICAL)
+        h_box_info = wx.BoxSizer(wx.HORIZONTAL)
 
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        Lib_Items = ['词频分级词汇一',
+        lib_items = ['请选择所属词库',
                      '词频分级词汇二',
                      '词频分级词汇三',
                      '词频分级词汇四',
                      'CET-4高频词汇']
+        lib_combo_box = wx.ComboBox(panel, choices=lib_items, style=wx.CB_READONLY)
+        lib_combo_box.SetSelection(0)
 
-        label = wx.StaticText(self, -1, "所属词库：")
-        hbox1.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+        preview = wx.BitmapButton(panel, -1, wx.Bitmap('images/32/preview.png'), size=(32, 32), style=wx.NO_BORDER)
+        h_box_info.Add(lib_combo_box, 1, wx.TOP | wx.RIGHT, 10)
+        h_box_info.Add(preview, 0, wx.ALIGN_RIGHT | wx.TOP, 6)
 
-        LibComboBox = wx.ComboBox(self,
-		                          choices=Lib_Items,
-		                          style=wx.CB_READONLY)
-        hbox1.Add(LibComboBox, 1, wx.ALIGN_CENTER|wx.ALL, 5)
+        name_text = wx.StaticText(panel, -1, "问题（正面）：")
+        record_ques = wx.TextCtrl(panel, -1, "", size=(-1, 80), style=wx.TE_MULTILINE | wx.TE_NO_VSCROLL)
 
-        vbox.Add(hbox1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        desc_text = wx.StaticText(panel, -1, "答案（反面）：")
+        record_ans = wx.TextCtrl(panel, -1, "", size=(-1, 80), style=wx.TE_MULTILINE | wx.TE_NO_VSCROLL)
 
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        h_box_btn = wx.BoxSizer(wx.HORIZONTAL)
+        ok_button = wx.Button(panel, -1, label='确定')
+        close_button = wx.Button(panel, -1, label='取消')
+        h_box_btn.Add(ok_button, 1, wx.RIGHT, border=5)
+        h_box_btn.Add(close_button, 1)
 
-        textBold = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/bold16.png'))
-        textItalic = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/italic16.png'))
-        textUnderline = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/underline16.png'))
-        textColor = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/color16.png'))
-        textAlighLeft = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/align_left16.png'))
-        textAlighCenter = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/align_center16.png'))
-        textAlighRight = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/align_right16.png'))
-        textList = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/text_list16.png'))
-        insertRecord = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/record16.png'))
-        insertPicture = wx.BitmapButton(self, -1, wx.Bitmap('images/rich-text/picture16.png'))
+        v_box.Add(h_box_info, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(name_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        v_box.Add(record_ques, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(desc_text, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(record_ans, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(h_box_btn, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
-
-        hbox2.Add(textBold, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(textItalic, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(textUnderline, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(textList, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(textColor, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(textAlighLeft, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(textAlighCenter, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(textAlighRight, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(insertPicture, 0, wx.ALIGN_CENTER_VERTICAL)
-        hbox2.Add(insertRecord, 1, wx.ALIGN_CENTER_VERTICAL)
-
-        vbox.Add(hbox2, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-
-        line1 = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        vbox.Add(line1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.TOP, 5)
-
-
-        vbox1 = wx.BoxSizer(wx.VERTICAL)
-        titleText1 = wx.StaticText(self, -1, label="编辑卡片的正面：")
-        editCard1 = wx.TextCtrl(self, -1, size=(-1, 100), style=wx.TE_MULTILINE)
-        vbox1.Add(titleText1, 0, wx.EXPAND|wx.ALL, 10)
-        vbox1.Add(editCard1, 1, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
-
-        vbox.Add(vbox1, 1, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
-
-        line2 = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        vbox.Add(line2, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.LEFT|wx.TOP, 5)
-
-        vbox2 = wx.BoxSizer(wx.VERTICAL)
-        titleText2 = wx.StaticText(self, -1, label="编辑卡片的反面：")
-        editCard2 = wx.TextCtrl(self, -1, size=(-1, 100), style=wx.TE_MULTILINE)
-        vbox1.Add(titleText2, 0, wx.EXPAND|wx.ALL, 10)
-        vbox1.Add(editCard2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
-
-        vbox.Add(vbox2, 1, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
-
-        btnsizer = wx.StdDialogButtonSizer()
-
-        if wx.Platform != "__WXMSW__":
-            btn = wx.ContextHelpButton(self)
-            btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_OK, "确定")
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_CANCEL, "取消")
-        btnsizer.AddButton(btn)
-        btnsizer.Realize()
-
-        vbox.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-
-        self.SetSizer(vbox)
-        vbox.Fit(self)
+        panel.SetSizer(v_box)
         self.Centre()
         self.Show(True)
 
-# class StartMemo(wx.Dialog):
-#    def __init__(self):
-#         wx.Dialog.__init__(self, None, -1, '单词卡片详细信息',size=(500, 600),
-#                            style=wx.CAPTION
-#                                  |wx.SYSTEM_MENU
-#                                  |wx.CLOSE_BOX)
-#
-#         vbox = wx.BoxSizer(wx.VERTICAL)
-#         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-#
-#         titleText = wx.StaticText(self, -1, "当前记忆词库的名称")
-#         backwardBtn = wx.BitmapButton(self, -1, wx.Bitmap("images/32/backward.png"), style=wx.NO_BORDER)
-#         moreBtn = wx.BitmapButton(self, -1, wx.Bitmap("images/other-size/more26.png"), style=wx.NO_BORDER)
-#
-#         hbox1.Add(titleText, 1, wx.ALIGN_CENTRE_VERTICAL)
-#         hbox1.Add(backwardBtn, 0, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_RIGHT|wx.RIGHT, 5)
-#         hbox1.Add(moreBtn, 0, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_RIGHT)
-#
-#         vbox.Add(hbox1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT, 8)
-#
-#         line1 = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-#         vbox.Add(line1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.TOP, 8)
-#
-#         gBox1 = wx.GridSizer(1, 2, 3, 3)
-#
-#         remainingText = [68, 8, 65]
-#         text = "剩余的卡片数量："
-#
-#         for label in remainingText:
-#             text += str(label)+"  "
-#
-#         textLabel = wx.StaticText(self, -1, text)
-#         gBox1.Add(textLabel, 0, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_LEFT)
-#
-#         timeLabel = wx.StaticText(self, -1, "01:09")
-#         gBox1.Add(timeLabel, 1, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_RIGHT)
-#
-#         vbox.Add(gBox1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-#
-#         panel = wx.Panel(self, -1, size=(-1, 300))
-#         panel.SetBackgroundColour("white")
-#         gBox2 = wx.GridSizer(3, 1, 5, 5)
-#
-#         frontPageText1 = wx.StaticText(panel, -1, "Lying")
-#         frontPageText2 = wx.StaticText(panel, -1, "['la???]")
-#         frontPageText3 = wx.StaticText(panel, -1, "")
-#         font1 = wx.Font(14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False)
-#         font2 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_LIGHT, False)
-#         font3 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False)
-#         frontPageText1.SetFont(font1)
-#         frontPageText2.SetFont(font2)
-#         frontPageText3.SetFont(font3)
-#
-#         gBox2.Add(frontPageText1, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL)
-#         gBox2.Add(frontPageText2, 0, wx.ALIGN_CENTER_HORIZONTAL)
-#         gBox2.Add(frontPageText3, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL)
-#
-#         panel.SetSizer(gBox2)
-#
-#         vbox.Add(panel, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-#
-#         showAnswerBtn = wx.Button(self, -1, "显示答案", size=(-1, 50), style=wx.BORDER_NONE)
-#         vbox.Add(showAnswerBtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, border=5)
-#
-#         self.SetSizer(vbox)
-#         vbox.Fit(self)
-#         self.Centre()
-#         self.Show(True)
 
-class StartMemo(wx.Dialog):
-   def __init__(self):
-        wx.Dialog.__init__(self, None, -1, '单词卡片详细信息',size=(500, 600),
-                           style=wx.CAPTION
-                                 |wx.SYSTEM_MENU
-                                 |wx.CLOSE_BOX)
+class MemoQues(wx.Dialog):
+    """
+    这里有些问题，应该只刷新 panel_word 和 panel_btn
+    而不是销毁当前的对话框，重新绘制一个新的！！
+    """
+    def __init__(self):
+        wx.Dialog.__init__(self, None, -1, '学习', size=(-1, 470),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        panel = wx.Panel(self, -1)
+        font_ques = wx.Font(14, wx.FONTFAMILY_DEFAULT,
+                            wx.FONTSTYLE_NORMAL,
+                            wx.FONTWEIGHT_BOLD,
+                            faceName="Consolas",
+                            underline=False)
+        font_api = wx.Font(13, wx.FONTFAMILY_DEFAULT,
+                           wx.FONTSTYLE_ITALIC,
+                           wx.FONTWEIGHT_NORMAL,
+                           faceName="Consolas",
+                           underline=False)
+        # font_ans = wx.Font(12, wx.FONTFAMILY_DEFAULT,
+        #                    wx.FONTSTYLE_NORMAL,
+        #                    wx.FONTWEIGHT_NORMAL,
+        #                    faceName="Consolas",
+        #                    underline=False)
 
-        titleText = wx.StaticText(self, -1, "当前记忆词库的名称")
-        backwardBtn = wx.BitmapButton(self, -1, wx.Bitmap("images/32/backward.png"), style=wx.NO_BORDER)
-        moreBtn = wx.BitmapButton(self, -1, wx.Bitmap("images/other-size/more26.png"), style=wx.NO_BORDER)
+        # ------
 
-        hbox1.Add(titleText, 1, wx.ALIGN_CENTRE_VERTICAL)
-        hbox1.Add(backwardBtn, 0, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_RIGHT|wx.RIGHT, 5)
-        hbox1.Add(moreBtn, 0, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_RIGHT)
+        v_box = wx.BoxSizer(wx.VERTICAL)
 
-        vbox.Add(hbox1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT, 8)
+        h_box_title = wx.BoxSizer(wx.HORIZONTAL)
+        lib_name = wx.StaticText(panel, -1, "当前学习的词库名称")
+        backward = wx.BitmapButton(panel, -1, wx.Bitmap('images/32/backward.png'), style=wx.NO_BORDER)
+        more = wx.BitmapButton(panel, -1, wx.Bitmap('images/other-size/more26.png'), style=wx.NO_BORDER)
 
-        line1 = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        vbox.Add(line1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.TOP, 8)
+        h_box_title.Add(lib_name, 1, wx.TOP | wx.RIGHT, 10)
+        h_box_title.Add(backward, 0, wx.ALIGN_RIGHT | wx.RIGHT | wx.TOP, 5)
+        h_box_title.Add(more, 0, wx.ALIGN_RIGHT | wx.LEFT | wx.TOP, 5)
 
-        gBox1 = wx.GridSizer(1, 2, 3, 3)
+        # ------
 
-        remainingText = [68, 8, 65]
-        text = "剩余的卡片数量："
+        line_1 = wx.StaticLine(panel, -1, size=(-1, -1), style=wx.LI_HORIZONTAL)
 
-        for label in remainingText:
-            text += str(label)+"  "
+        # ------
 
-        textLabel = wx.StaticText(self, -1, text)
-        gBox1.Add(textLabel, 0, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_LEFT)
+        h_box_info = wx.BoxSizer(wx.HORIZONTAL)
+        rest_list = [68, 8, 65]
+        rest_text = "剩余卡片："
 
-        timeLabel = wx.StaticText(self, -1, "01:09")
-        gBox1.Add(timeLabel, 1, wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_RIGHT)
+        for label in rest_list:
+            rest_text += str(label) + " " * 2
 
-        vbox.Add(gBox1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        rest_label = wx.StaticText(panel, -1, rest_text)
+        duration_label = wx.StaticText(panel, -1, "01:09")
 
-        panel = wx.Panel(self, -1, size=(400, 300))
-        panel.SetBackgroundColour("white")
-        gBox2 = wx.GridSizer(3, 1, 5, 5)
+        h_box_info.Add(rest_label, 1, wx.RIGHT, 10)
+        h_box_info.Add(duration_label, 0, wx.ALIGN_RIGHT)
 
-        frontPageText1 = wx.StaticText(panel, -1, "Lying")
-        frontPageText2 = wx.StaticText(panel, -1, "['la???]")
-        frontPageText3 = wx.StaticText(panel, -1, "lie的现在分词")
-        font1 = wx.Font(14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False)
-        font2 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_LIGHT, False)
-        font3 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False)
-        frontPageText1.SetFont(font1)
-        frontPageText2.SetFont(font2)
-        frontPageText3.SetFont(font3)
+        # ------
 
-        gBox2.Add(frontPageText1, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL)
-        gBox2.Add(frontPageText2, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        gBox2.Add(frontPageText3, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 5)
+        ques = "general"
+        ipa = "['d?en?r?l]".encode('utf-8')
+        # ans = "[n.] 将军\n[adj.]全体的，总的，普遍的"
+        panel_word = wx.Panel(panel, -1, size=(-1, 300), style=wx.BORDER_THEME)
+        panel_word.SetBackgroundColour('white')
+        v_box_pw = wx.BoxSizer(wx.VERTICAL)
+        ques_text = wx.StaticText(panel_word, -1, ques)
+        ipa_text = wx.StaticText(panel_word, -1, ipa)
+        # ans_text = wx.StaticText(panel_word, -1, ans)
+        ques_text.SetFont(font_ques)
+        ipa_text.SetFont(font_api)
+        # ans_text.SetFont(font_ans)
+        line_2 = wx.StaticLine(panel_word, -1, size=(-1, -1), style=wx.LI_HORIZONTAL)
 
-        panel.SetSizer(gBox2)
+        v_box_pw.Add(ques_text, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP, 20)
+        v_box_pw.Add(ipa_text, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        v_box_pw.Add(line_2, 0, wx.EXPAND | wx.ALL, 10)
+        # v_box_pw.Add(ans_text, 1, wx.ALIGN_CENTER_HORIZONTAL)
+        panel_word.SetSizer(v_box_pw)
 
-        vbox.Add(panel, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        # ---------
 
+        panel_btn = wx.Panel(panel, -1)
+        h_box_btn = wx.BoxSizer(wx.HORIZONTAL)
+        show_ans = wx.Button(panel_btn, -1, "显示答案")
+        self.Bind(wx.EVT_BUTTON, self.on_show_ans, show_ans)
+        h_box_btn.Add(show_ans, 1, wx.EXPAND)
+        panel_btn.SetSizer(h_box_btn)
 
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-
-        restartBtn = wx.Button(self, -1, "<1分钟\n重来", size=(-1, 50))
-        normalBtn = wx.Button(self, -1, "<10分钟\n一般", size=(-1, 50))
-        simpleBtn = wx.Button(self, -1, "3天\n简单", size=(-1, 50))
-
-        hbox2.Add(restartBtn, 1, wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5)
-        hbox2.Add(normalBtn, 1, wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT, 2.5)
-        hbox2.Add(simpleBtn, 1, wx.ALIGN_CENTER_VERTICAL|wx.LEFT, 5)
-
-        vbox.Add(hbox2, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, border=5)
-
-        self.SetSizer(vbox)
-        vbox.Fit(self)
+        v_box.Add(h_box_title, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(line_1, 0, wx.EXPAND)
+        v_box.Add(h_box_info, 0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(panel_word, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(panel_btn, 1, wx.EXPAND | wx.ALL, 10)
+        panel.SetSizer(v_box)
         self.Centre()
         self.Show(True)
+
+    def on_show_ans(self, evt):
+        self.Destroy()
+        dlg = MemoAns()
+        dlg.ShowModal()
+        dlg.Destroy()
+        evt.Skip()
+
+
+class MemoAns(wx.Dialog):
+    def __init__(self):
+        wx.Dialog.__init__(self, None, -1, '学习', size=(-1, 470),
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX)
+        panel = wx.Panel(self, -1)
+        font_ques = wx.Font(14, wx.FONTFAMILY_DEFAULT,
+                            wx.FONTSTYLE_NORMAL,
+                            wx.FONTWEIGHT_BOLD,
+                            faceName="Consolas",
+                            underline=False)
+        font_api = wx.Font(13, wx.FONTFAMILY_DEFAULT,
+                           wx.FONTSTYLE_ITALIC,
+                           wx.FONTWEIGHT_NORMAL,
+                           faceName="Consolas",
+                           underline=False)
+        font_ans = wx.Font(12, wx.FONTFAMILY_DEFAULT,
+                           wx.FONTSTYLE_NORMAL,
+                           wx.FONTWEIGHT_NORMAL,
+                           faceName="Consolas",
+                           underline=False)
+
+        # ------
+
+        v_box = wx.BoxSizer(wx.VERTICAL)
+
+        h_box_title = wx.BoxSizer(wx.HORIZONTAL)
+        lib_name = wx.StaticText(panel, -1, "当前学习的词库名称")
+        backward = wx.BitmapButton(panel, -1, wx.Bitmap('images/32/backward.png'), style=wx.NO_BORDER)
+        more = wx.BitmapButton(panel, -1, wx.Bitmap('images/other-size/more26.png'), style=wx.NO_BORDER)
+
+        h_box_title.Add(lib_name, 1, wx.TOP | wx.RIGHT, 10)
+        h_box_title.Add(backward, 0, wx.ALIGN_RIGHT | wx.RIGHT | wx.TOP, 5)
+        h_box_title.Add(more, 0, wx.ALIGN_RIGHT | wx.LEFT | wx.TOP, 5)
+
+        # ------
+
+        line_1 = wx.StaticLine(panel, -1, size=(-1, -1), style=wx.LI_HORIZONTAL)
+
+        # ------
+
+        h_box_info = wx.BoxSizer(wx.HORIZONTAL)
+        rest_list = [68, 8, 65]
+        rest_text = "剩余卡片："
+        for label in rest_list:
+            rest_text += str(label) + " " * 2
+
+        rest_label = wx.StaticText(panel, -1, rest_text)
+        duration_label = wx.StaticText(panel, -1, "01:09")
+
+        h_box_info.Add(rest_label, 1, wx.RIGHT, 10)
+        h_box_info.Add(duration_label, 0, wx.ALIGN_RIGHT)
+
+        # ------
+
+        ques = "general"
+        ipa = "['d?en?r?l]".encode('utf-8')
+        ans = "[n.] 将军\n[adj.]全体的，总的，普遍的"
+        panel_word = wx.Panel(panel, -1, size=(-1, 300), style=wx.BORDER_THEME)
+        panel_word.SetBackgroundColour('white')
+        v_box_pw = wx.BoxSizer(wx.VERTICAL)
+        ques_text = wx.StaticText(panel_word, -1, ques)
+        ipa_text = wx.StaticText(panel_word, -1, ipa)
+        ans_text = wx.StaticText(panel_word, -1, ans)
+        ques_text.SetFont(font_ques)
+        ipa_text.SetFont(font_api)
+        ans_text.SetFont(font_ans)
+        line_2 = wx.StaticLine(panel_word, -1, size=(-1, -1), style=wx.LI_HORIZONTAL)
+
+        v_box_pw.Add(ques_text, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP, 20)
+        v_box_pw.Add(ipa_text, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        v_box_pw.Add(line_2, 0, wx.EXPAND | wx.ALL, 10)
+        v_box_pw.Add(ans_text, 1, wx.ALIGN_CENTER_HORIZONTAL)
+        panel_word.SetSizer(v_box_pw)
+
+        # ---------
+
+        panel_btn = wx.Panel(panel, -1)
+        h_box_btn = wx.BoxSizer(wx.HORIZONTAL)
+        again = wx.Button(panel_btn, -1, "重来")
+        hard = wx.Button(panel_btn, -1, "困难")
+        good = wx.Button(panel_btn, -1, "一般")
+        easy = wx.Button(panel_btn, -1, "简单")
+
+        self.Bind(wx.EVT_BUTTON, self.on_again, again)
+        self.Bind(wx.EVT_BUTTON, self.on_hard, hard)
+        self.Bind(wx.EVT_BUTTON, self.on_good, good)
+        self.Bind(wx.EVT_BUTTON, self.on_easy, easy)
+
+        h_box_btn.Add(again, 1, wx.EXPAND | wx.RIGHT, 5)
+        h_box_btn.Add(hard, 1, wx.EXPAND | wx.RIGHT, 5)
+        h_box_btn.Add(good, 1, wx.EXPAND | wx.RIGHT, 5)
+        h_box_btn.Add(easy, 1, wx.EXPAND)
+        panel_btn.SetSizer(h_box_btn)
+
+        v_box.Add(h_box_title, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(line_1, 0, wx.EXPAND)
+        v_box.Add(h_box_info, 0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 10)
+        v_box.Add(panel_word, 0, wx.EXPAND | wx.ALL, 10)
+        v_box.Add(panel_btn, 1, wx.EXPAND | wx.ALL, 10)
+        panel.SetSizer(v_box)
+        self.Centre()
+        self.Show(True)
+
+    def on_again(self, evt):
+        pass
+
+    def on_hard(self, evt):
+        pass
+
+    def on_good(self, evt):
+        pass
+
+    def on_easy(self, evt):
+        pass
