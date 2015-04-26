@@ -28,7 +28,6 @@ def update(conn, sql):
 
 
 def max_lib(column):
-    """����library���ƶ������ֵ"""
     select_sql = "SELECT max(" + column + ") FROM library"
     conn = connect_db('db_pymemo.db')
     cursor = select(conn, select_sql)
